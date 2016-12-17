@@ -1,6 +1,9 @@
 let searchQuery;
 let currentObj;
 let box = document.getElementById('contentContainer');
+let button = document.getElementById('requestResourceButton');
+let text = document.getElementById('resourceId');
+let type = document.getElementById('resourceType');
 
 function resetQuery() {
 	window.searchQuery = "https://swapi.co";
@@ -36,24 +39,6 @@ function getAndAdd(obj, link, id, content, callback) {
     addTo(id, this[obj][content], callback);
   });
 }
-
-
-/*
-
-this.currentObj = {
-  homeworld: null,
-  species: null
-};
-
-this.filmArr = {};
-
-this.filmObj = {};
-
-this.planetObj = {};
-
-
-
-//getAndAdd("http://swapi.co/api/people/1/", 'person4Name', 'name');
 
 var sequence = [
   'currentObj',
@@ -100,43 +85,33 @@ function runThru(func, param, delim) {
   eval(tempStr);
 }
 
-runThru('getAndAdd', sequence, 4);
+function render() {
+	let sequence = ['currentObj'];
+	resetQuery();
+	emptyBox();
+	switch(type.value) {
+		case 'Person':
+			person();
+			break;
+		case 'Planet':
+			planet();
+			break;
+		case 'Starship':
+			starship();
+			break;
+	}
+	function person() {
+		let name = document.createElement('h2');
+		let gender = document.createElement('p');
+		let species = document.createElement('')
+		sequence.push('http://swapi.co/api/people/' + text.value);
+	}
+	function planet() {
 
-getObject('filmArr', 'http://swapi.co/api/films/', () => {
-  let filmList = document.getElementById('filmList');
-  filmArr = filmArr.results;
-  for(let i = 0; i < filmArr.length; i++) {
-    filmObj = filmArr[i];
-    // li
-    let li = document.createElement('li');
-    li.className = 'film';
-    // h2
-    let h2 = document.createElement('h2');
-    h2.className = 'filmTitle';
-    h2.innerText = filmObj.title;
-    // h3
-    let h3 = document.createElement('h3');
-    h2.innerText = 'Planets';
-    // ul
-    let ul = document.createElement('ul');
-    ul.className = 'filmPlanets';
-    for(let j = 0; j < filmObj.planets.length; j++) {
-      getObject('planetObj', filmObj.planets[j], () => {
-        let li = document.createElement('li');
-        li.className = 'planet';
-        let h4 = document.createElement('h4');
-        h4.className = 'planetName';
-        h4.innerText = planetObj.name;
-        li.appendChild(h4);
-        ul.appendChild(li);
-      });
-    }
-    // append
-    li.appendChild(h2);
-    li.appendChild(h3);
-    li.appendChild(ul);
-    filmList.appendChild(li);
-  }
-});
+	}
+	function starship() {
 
-*/
+	}
+}
+
+button.addEventListener('click', render);
