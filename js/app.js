@@ -1,5 +1,5 @@
+this.currentObj;
 let searchQuery;
-let currentObj;
 let box = document.getElementById('contentContainer');
 let button = document.getElementById('requestResourceButton');
 let text = document.getElementById('resourceId');
@@ -40,25 +40,6 @@ function getAndAdd(obj, link, id, content, callback) {
   });
 }
 
-var sequence = [
-  'currentObj',
-  'http://swapi.co/api/people/1/',
-  'person4Name',
-  'name',
-  'currentObj',
-  '$currentObj.homeworld',
-  'person4HomeWorld',
-  'name',
-  'currentObj',
-  'http://swapi.co/api/people/14/',
-  'person14Name',
-  'name',
-  'currentObj',
-  '$currentObj.species',
-  'person14Species',
-  'name'
-];
-
 function runThru(func, param, delim) {
   let tempStr = "";
   let i = 0;
@@ -86,28 +67,46 @@ function runThru(func, param, delim) {
 }
 
 function render() {
-	let sequence = ['currentObj'];
+	let sequence = [];
 	resetQuery();
 	emptyBox();
 	switch(type.value) {
-		case 'Person':
+		case 'people':
 			person();
 			break;
-		case 'Planet':
+		case 'planets':
 			planet();
 			break;
-		case 'Starship':
+		case 'starships':
 			starship();
 			break;
 	}
 	function person() {
 		let name = document.createElement('h2');
 		let gender = document.createElement('p');
-		let species = document.createElement('')
-		sequence.push('http://swapi.co/api/people/' + text.value);
+		let species = document.createElement('p');
+		name.id = 'personName';
+		gender.id = 'personGender';
+		species.id = 'personSpecies';
+		box.appendChild(name);
+		box.appendChild(gender);
+		box.appendChild(species);
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/people/' + text.value + '/');
+		sequence.push('personName');
+		sequence.push('name');
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/people/' + text.value + '/');
+		sequence.push('personGender');
+		sequence.push('gender');
+		sequence.push('currentObj');
+		sequence.push('$currentObj.species[0]');
+		sequence.push('personSpecies');
+		sequence.push('name');
+		runThru('getAndAdd', sequence, 4);
 	}
 	function planet() {
-
+		
 	}
 	function starship() {
 
