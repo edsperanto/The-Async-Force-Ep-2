@@ -10,7 +10,7 @@ function resetQuery() {
 }
 
 function emptyBox() {
-	box.innerHtml = "";
+	box.innerHTML = "";
 }
 
 function getObject(obj, link, callback) {
@@ -106,7 +106,31 @@ function render() {
 		runThru('getAndAdd', sequence, 4);
 	}
 	function planet() {
-		
+		let name = document.createElement('h2');
+		let terrain = document.createElement('p');
+		let population = document.createElement('p');
+		let films = document.createElement('li');
+		name.id = 'planetName';
+		terrain.id = 'planetTerr';
+		population.id = 'planetPop';
+		films.id = 'filmsList';
+		box.appendChild(name);
+		box.appendChild(terrain);
+		box.appendChild(population);
+		box.appendChild(films);
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
+		sequence.push('planetName');
+		sequence.push('name');
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
+		sequence.push('planetTerr');
+		sequence.push('terrain');
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
+		sequence.push('planetPop');
+		sequence.push('population');
+		runThru('getAndAdd', sequence, 4);
 	}
 	function starship() {
 
