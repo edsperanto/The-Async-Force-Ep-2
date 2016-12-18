@@ -1,4 +1,5 @@
 this.currentObj;
+this.filmObj;
 let searchQuery;
 let box = document.getElementById('contentContainer');
 let button = document.getElementById('requestResourceButton');
@@ -14,56 +15,60 @@ function emptyBox() {
 }
 
 function getObject(obj, link, callback) {
-  let oReq = new XMLHttpRequest();
-  oReq.addEventListener('load', parseObj);
-  oReq.open('GET', link);
-  oReq.send();
-  function parseObj() {
-    let tempStr = this.responseText;
-    window[obj] = JSON.parse(tempStr);
-    if(typeof callback === 'function') {
-      callback();
-    }
-  }
+	let oReq = new XMLHttpRequest();
+	oReq.addEventListener('load', parseObj);
+	oReq.open('GET', link);
+	oReq.send();
+	function parseObj() {
+		let tempStr = this.responseText;
+		window[obj] = JSON.parse(tempStr);
+		if(typeof callback === 'function') {
+			callback();
+		}
+	}
 }
 
 function addTo(id, content, callback) {
-  document.getElementById(id).innerText = content;
-  if(typeof callback === 'function') {
-    callback();
-  }
+	document.getElementById(id).innerText = content;
+	if(typeof callback === 'function') {
+		callback();
+	}
 }
 
 function getAndAdd(obj, link, id, content, callback) {
-  getObject(obj, link, () => {
-    addTo(id, this[obj][content], callback);
-  });
+	getObject(obj, link, () => {
+		addTo(id, this[obj][content], callback);
+	});
 }
 
-function runThru(func, param, delim) {
-  let tempStr = "";
-  let i = 0;
-  while(i < param.length) {
-    if(i % delim === 0) {
-      tempStr += "() => { " + func + "(";
-    }
-    tempStr += checkParam(param[i]);
-    i++;
-  }
-  function checkParam(param) {
-    if(param.charAt(0) === '$') {
-      return `${param.substr(1)}, `;
-    }else{
-      return `"${param}", `;
-    }
-  }
-  tempStr = tempStr.substr(0, tempStr.length - 2);
-  for(let i = 0; i < param.length / delim; i ++) {
-    tempStr += ") }";
-  }
-  tempStr = tempStr.substr(8, tempStr.length - 10);
-  tempStr += ";";
-  eval(tempStr);
+function runThru(func, param, delim, callback) {
+	let tempStr = "";
+	let i = 0;
+	while(i < param.length) {
+		if(i % delim === 0) {
+			tempStr += "() => { " + func + "(";
+		}
+		tempStr += checkParam(param[i]);
+		i++;
+	}
+	function checkParam(param) {
+		if(param.charAt(0) === '$') {
+			return `${param.substr(1)}, `;
+		}else{
+			return `"${param}", `;
+		}
+	}
+	if(callback !== undefined) {
+		tempStr += `${String(callback)} )`;
+	}
+	tempStr = tempStr.substr(0, tempStr.length - 2);
+	for(let i = 0; i < param.length / delim; i ++) {
+		tempStr += ") }";
+	}
+	tempStr = tempStr.substr(8, tempStr.length - 10);
+	tempStr += ";";
+	console.log(tempStr);
+	eval(tempStr);
 }
 
 function render() {
@@ -109,7 +114,7 @@ function render() {
 		let name = document.createElement('h2');
 		let terrain = document.createElement('p');
 		let population = document.createElement('p');
-		let films = document.createElement('li');
+		this.films = document.createElement('ul');
 		name.id = 'planetName';
 		terrain.id = 'planetTerr';
 		population.id = 'planetPop';
@@ -130,7 +135,20 @@ function render() {
 		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
 		sequence.push('planetPop');
 		sequence.push('population');
-		runThru('getAndAdd', sequence, 4);
+		runThru('getAndAdd', sequence, 4, () => {
+			let filmSeq = [];
+			for(let i = 0; i < currentObj.films.length; i++) {
+				let film = document.createElement('li');
+				film.id = 'film' + (i + 1);
+				films.appendChild(film);
+				filmSeq.push('filmObj');
+				filmSeq.push(currentObj.films[i]);
+				filmSeq.push('film' + (i + 1));
+				filmSeq.push('title');
+			}
+			runThru('getAndAdd', filmSeq, 4);
+			console.log(this);
+		});
 	}
 	function starship() {
 
