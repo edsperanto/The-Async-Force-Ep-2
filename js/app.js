@@ -1,5 +1,4 @@
 this.currentObj;
-this.filmObj;
 let searchQuery;
 let box = document.getElementById('contentContainer');
 let button = document.getElementById('requestResourceButton');
@@ -67,7 +66,6 @@ function runThru(func, param, delim, callback) {
 	}
 	tempStr = tempStr.substr(8, tempStr.length - 10);
 	tempStr += ";";
-	console.log(tempStr);
 	eval(tempStr);
 }
 
@@ -111,6 +109,7 @@ function render() {
 		runThru('getAndAdd', sequence, 4);
 	}
 	function planet() {
+		this.filmObj;
 		let name = document.createElement('h2');
 		let terrain = document.createElement('p');
 		let population = document.createElement('p');
@@ -118,7 +117,6 @@ function render() {
 		name.id = 'planetName';
 		terrain.id = 'planetTerr';
 		population.id = 'planetPop';
-		films.id = 'filmsList';
 		box.appendChild(name);
 		box.appendChild(terrain);
 		box.appendChild(population);
@@ -147,11 +145,45 @@ function render() {
 				filmSeq.push('title');
 			}
 			runThru('getAndAdd', filmSeq, 4);
-			console.log(this);
 		});
 	}
 	function starship() {
-
+		let name = document.createElement('h2');
+		let manu = document.createElement('p');
+		let starClass = document.createElement('p');
+		this.films = document.createElement('ul');
+		name.id = 'starshipName';
+		manu.id = 'starshipManu';
+		starClass.id = 'starshipClass';
+		box.appendChild(name);
+		box.appendChild(manu);
+		box.appendChild(starClass);
+		box.appendChild(films);
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/starships/' + text.value + '/');
+		sequence.push('starshipName');
+		sequence.push('name');
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/starships/' + text.value + '/');
+		sequence.push('starshipManu');
+		sequence.push('manufacturer');
+		sequence.push('currentObj');
+		sequence.push('http://swapi.co/api/starships/' + text.value + '/');
+		sequence.push('starshipClass');
+		sequence.push('starship_class');
+		runThru('getAndAdd', sequence, 4, () => {
+			let filmSeq = [];
+			for(let i = 0; i < currentObj.films.length; i++) {
+				let film = document.createElement('li');
+				film.id = 'film' + (i + 1);
+				films.appendChild(film);
+				filmSeq.push('filmObj');
+				filmSeq.push(currentObj.films[i]);
+				filmSeq.push('film' + (i + 1));
+				filmSeq.push('title');
+			}
+			runThru('getAndAdd', filmSeq, 4);
+		});
 	}
 }
 
