@@ -13,60 +13,25 @@ function emptyBox() {
 	box.innerHTML = "";
 }
 
-function getObject(obj, link, callback) {
+function getAndAdd(obj, link, id, content) {
 	let oReq = new XMLHttpRequest();
-	oReq.addEventListener('load', parseObj);
-	oReq.open('GET', link);
-	oReq.send();
+	let nextThing;
+	if(obj !== undefined) {
+		oReq.addEventListener('load', parseObj);
+		oReq.open('GET', link);
+		oReq.send();
+	}
 	function parseObj() {
 		let tempStr = this.responseText;
 		window[obj] = JSON.parse(tempStr);
-		if(typeof callback === 'function') {
-			callback();
+		document.getElementById(id).innerText = window[obj][content];
+		if(typeof nextThing === 'function') {
+			nextThing();
 		}
 	}
-}
-
-function addTo(id, content, callback) {
-	document.getElementById(id).innerText = content;
-	if(typeof callback === 'function') {
-		callback();
+	return {
+		then: callback => nextThing = callback
 	}
-}
-
-function getAndAdd(obj, link, id, content, callback) {
-	getObject(obj, link, () => {
-		addTo(id, this[obj][content], callback);
-	});
-}
-
-function runThru(func, param, delim, callback) {
-	let tempStr = "";
-	let i = 0;
-	while(i < param.length) {
-		if(i % delim === 0) {
-			tempStr += "() => { " + func + "(";
-		}
-		tempStr += checkParam(param[i]);
-		i++;
-	}
-	function checkParam(param) {
-		if(param.charAt(0) === '$') {
-			return `${param.substr(1)}, `;
-		}else{
-			return `"${param}", `;
-		}
-	}
-	if(callback !== undefined) {
-		tempStr += `${String(callback)} )`;
-	}
-	tempStr = tempStr.substr(0, tempStr.length - 2);
-	for(let i = 0; i < param.length / delim; i ++) {
-		tempStr += ") }";
-	}
-	tempStr = tempStr.substr(8, tempStr.length - 10);
-	tempStr += ";";
-	eval(tempStr);
 }
 
 function render() {
@@ -88,13 +53,14 @@ function render() {
 		let name = document.createElement('h2');
 		let gender = document.createElement('p');
 		let species = document.createElement('p');
+		let link = 'http://swapi.co/api/people/' + text.value + '/';
 		name.id = 'personName';
 		gender.id = 'personGender';
 		species.id = 'personSpecies';
 		box.appendChild(name);
 		box.appendChild(gender);
 		box.appendChild(species);
-		sequence.push('currentObj');
+		/*sequence.push('currentObj');
 		sequence.push('http://swapi.co/api/people/' + text.value + '/');
 		sequence.push('personName');
 		sequence.push('name');
@@ -106,7 +72,10 @@ function render() {
 		sequence.push('$currentObj.species[0]');
 		sequence.push('personSpecies');
 		sequence.push('name');
-		runThru('getAndAdd', sequence, 4);
+		runThru('getAndAdd', sequence, 4);*/
+		getAndAdd('currentObj', link, 'personName', 'name')
+		.then(getAndAdd('currentObj', link, 'personGender', 'gender'))
+		.then(getAndAdd('currentObj', link, 'personSpecies', 'name'));
 	}
 	function planet() {
 		this.filmObj;
