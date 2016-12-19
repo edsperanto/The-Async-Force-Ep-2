@@ -1,86 +1,46 @@
 this.currentObj;
+this.filmObj;
 let searchQuery;
 let box = document.getElementById('contentContainer');
 let button = document.getElementById('requestResourceButton');
 let text = document.getElementById('resourceId');
 let type = document.getElementById('resourceType');
 
-function resetQuery() {
-	window.searchQuery = "https://swapi.co";
+//http://swapi.co/api/planets/
+function search(thing, num) {
+	return `https://swapi.co/api/${thing}/${num}/`;
 }
 
-function emptyBox() {
-	box.innerHTML = "";
-}
-
-function getObject(obj, link, callback) {
+function getAndAdd(obj, link, id, content, callback) {
 	let oReq = new XMLHttpRequest();
-	oReq.addEventListener('load', parseObj);
+	oReq.addEventListener('load', parse);
 	oReq.open('GET', link);
 	oReq.send();
-	function parseObj() {
+	function parse() {
 		let tempStr = this.responseText;
 		window[obj] = JSON.parse(tempStr);
+		document.getElementById(id).innerText = window[obj][content];
 		if(typeof callback === 'function') {
 			callback();
 		}
 	}
 }
 
-function addTo(id, content, callback) {
-	document.getElementById(id).innerText = content;
-	if(typeof callback === 'function') {
-		callback();
-	}
-}
-
-function getAndAdd(obj, link, id, content, callback) {
-	getObject(obj, link, () => {
-		addTo(id, this[obj][content], callback);
-	});
-}
-
-function runThru(func, param, delim, callback) {
-	let tempStr = "";
-	let i = 0;
-	while(i < param.length) {
-		if(i % delim === 0) {
-			tempStr += "() => { " + func + "(";
-		}
-		tempStr += checkParam(param[i]);
-		i++;
-	}
-	function checkParam(param) {
-		if(param.charAt(0) === '$') {
-			return `${param.substr(1)}, `;
-		}else{
-			return `"${param}", `;
-		}
-	}
-	if(callback !== undefined) {
-		tempStr += `${String(callback)} )`;
-	}
-	tempStr = tempStr.substr(0, tempStr.length - 2);
-	for(let i = 0; i < param.length / delim; i ++) {
-		tempStr += ") }";
-	}
-	tempStr = tempStr.substr(8, tempStr.length - 10);
-	tempStr += ";";
-	eval(tempStr);
-}
-
 function render() {
 	let sequence = [];
-	resetQuery();
-	emptyBox();
+	let link;
+	box.innerHTML = "";
 	switch(type.value) {
 		case 'people':
+			link = search('people', text.value);
 			person();
 			break;
 		case 'planets':
+			link = search('planets', text.value);
 			planet();
 			break;
 		case 'starships':
+			link = search('starships', text.value);
 			starship();
 			break;
 	}
@@ -94,26 +54,17 @@ function render() {
 		box.appendChild(name);
 		box.appendChild(gender);
 		box.appendChild(species);
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/people/' + text.value + '/');
-		sequence.push('personName');
-		sequence.push('name');
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/people/' + text.value + '/');
-		sequence.push('personGender');
-		sequence.push('gender');
-		sequence.push('currentObj');
-		sequence.push('$currentObj.species[0]');
-		sequence.push('personSpecies');
-		sequence.push('name');
-		runThru('getAndAdd', sequence, 4);
+		getAndAdd('currentObj', link, 'personName', 'name', () => {
+			getAndAdd('currentObj', link, 'personGender', 'gender', () => {
+				getAndAdd('currentObj', currentObj.species[0], 'personSpecies', 'name');
+			});
+		});
 	}
 	function planet() {
-		this.filmObj;
 		let name = document.createElement('h2');
 		let terrain = document.createElement('p');
 		let population = document.createElement('p');
-		this.films = document.createElement('ul');
+		let films = document.createElement('ul');
 		name.id = 'planetName';
 		terrain.id = 'planetTerr';
 		population.id = 'planetPop';
@@ -121,37 +72,24 @@ function render() {
 		box.appendChild(terrain);
 		box.appendChild(population);
 		box.appendChild(films);
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
-		sequence.push('planetName');
-		sequence.push('name');
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
-		sequence.push('planetTerr');
-		sequence.push('terrain');
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/planets/' + text.value + '/');
-		sequence.push('planetPop');
-		sequence.push('population');
-		runThru('getAndAdd', sequence, 4, () => {
-			let filmSeq = [];
-			for(let i = 0; i < currentObj.films.length; i++) {
-				let film = document.createElement('li');
-				film.id = 'film' + (i + 1);
-				films.appendChild(film);
-				filmSeq.push('filmObj');
-				filmSeq.push(currentObj.films[i]);
-				filmSeq.push('film' + (i + 1));
-				filmSeq.push('title');
-			}
-			runThru('getAndAdd', filmSeq, 4);
+		getAndAdd('currentObj', link, 'planetName', 'name', () => {
+			getAndAdd('currentObj', link, 'planetTerr', 'terrain', () => {
+				getAndAdd('currentObj', link, 'planetPop', 'population', () => {
+					for(let i = 0; i < currentObj.films.length; i++) {
+						let film = document.createElement('li');
+						film.id = 'film' + (i + 1);
+						films.appendChild(film);
+						getAndAdd('filmObj', currentObj.films[i], 'film' + (i + 1), 'title');
+					}
+				});
+			});
 		});
 	}
 	function starship() {
 		let name = document.createElement('h2');
 		let manu = document.createElement('p');
 		let starClass = document.createElement('p');
-		this.films = document.createElement('ul');
+		let films = document.createElement('ul');
 		name.id = 'starshipName';
 		manu.id = 'starshipManu';
 		starClass.id = 'starshipClass';
@@ -159,30 +97,17 @@ function render() {
 		box.appendChild(manu);
 		box.appendChild(starClass);
 		box.appendChild(films);
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/starships/' + text.value + '/');
-		sequence.push('starshipName');
-		sequence.push('name');
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/starships/' + text.value + '/');
-		sequence.push('starshipManu');
-		sequence.push('manufacturer');
-		sequence.push('currentObj');
-		sequence.push('http://swapi.co/api/starships/' + text.value + '/');
-		sequence.push('starshipClass');
-		sequence.push('starship_class');
-		runThru('getAndAdd', sequence, 4, () => {
-			let filmSeq = [];
-			for(let i = 0; i < currentObj.films.length; i++) {
-				let film = document.createElement('li');
-				film.id = 'film' + (i + 1);
-				films.appendChild(film);
-				filmSeq.push('filmObj');
-				filmSeq.push(currentObj.films[i]);
-				filmSeq.push('film' + (i + 1));
-				filmSeq.push('title');
-			}
-			runThru('getAndAdd', filmSeq, 4);
+		getAndAdd('currentObj', link, 'starshipName', 'name', () => {
+			getAndAdd('currentObj', link, 'starshipManu', 'manufacturer', () => {
+				getAndAdd('currentObj', link, 'starshipClass', 'starship_class', () => {
+					for(let i = 0; i < currentObj.films.length; i++) {
+						let film = document.createElement('li');
+						film.id = 'film' + (i + 1);
+						films.appendChild(film);
+						getAndAdd('filmObj', currentObj.films[i], 'film' + (i + 1), 'title');
+					}
+				});
+			});
 		});
 	}
 }
